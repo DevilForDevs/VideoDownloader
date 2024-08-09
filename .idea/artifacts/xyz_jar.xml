@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact name="xyz:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/xyz_jar</output-path>
+    <root id="root">
+      <element id="archive" name="xyz.jar">
+        <element id="module-output" name="xyz" />
+      </element>
+      <element id="library" level="project" name="json" />
+      <element id="library" level="project" name="KotlinJavaRuntime" />
+      <element id="library" level="project" name="squareup.okhttp3.okhttp" />
+    </root>
+  </artifact>
+</component>
