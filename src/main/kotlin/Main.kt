@@ -146,15 +146,16 @@ class DownloaderApp{
                 val resolution="${item.getInt("itag")}    ${item.getString("qualityLabel")}  ${convertBytes(item.getString("contentLength").toLong())} VideoOnly"
                 println(resolution)
             }
-            if (item.getString("mimeType").contains("audio/mp4")){
+            if (item.getString("mimeType").contains("audio")){
                 if (item.getInt("itag")==140){
                     audioUrl=item.getString("url")
                     audioContentLength=item.getString("contentLength")
 
                 }
-                val resolution="${item.getInt("itag")}  ${convertBytes(item.getString("contentLength").toLong())} audioOnly"
+                val resolution="${item.getInt("itag")}  ${convertBytes(item.getString("contentLength").toLong())} ${convertBytes(item.getInt("bitrate").toLong())} audioOnly"
                 println(resolution)
             }
+
         }
         println("Enter Itag>>>")
         val input= readln()
