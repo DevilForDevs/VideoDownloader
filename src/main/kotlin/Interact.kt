@@ -1021,6 +1021,7 @@ class Interact {
                     }
                     if (jsonObject.getJSONObject("metadata").has("playlistMetadataRenderer")){
                         title=jsonObject.getJSONObject("metadata").getJSONObject("playlistMetadataRenderer").getString("title")
+                        allItems.put("title",title)
 
                     }
                     try {
@@ -1029,19 +1030,69 @@ class Interact {
                             if (tabs.getJSONObject(l).has("tabRenderer")){
                                 if (tabs.getJSONObject(l).getJSONObject("tabRenderer").has("content")){
                                     val contAndItems=tabs.getJSONObject(l).getJSONObject("tabRenderer").getJSONObject("content")
+                                    val videos=JSONArray()
                                     if (contAndItems.has("sectionListRenderer")){
                                         val jk=contAndItems.getJSONObject("sectionListRenderer").getJSONArray("contents").getJSONObject(0).getJSONObject("itemSectionRenderer").getJSONArray("contents").getJSONObject(0)
+                                       if (jk.has("richGridRenderer")){
+                                           if (jk.has("richGridRenderer")){
+                                               val conts=jk.getJSONObject("richGridRenderer").getJSONArray("contents")
+                                               for (k in 0..<conts.length()) {
+                                                   if (conts.getJSONObject(k).has("richItemRenderer")){
+                                                       if (conts.getJSONObject(k).getJSONObject("richItemRenderer").has("header")){
+                                                           val nextc=contAndItems.getJSONObject("richGridRenderer").getJSONObject("header").getJSONObject("feedFilterChipBarRenderer").getJSONArray("contents").getJSONObject(0).getJSONObject("chipCloudChipRenderer").getJSONObject("navigationEndpoint").getJSONObject("continuationCommand").getString("token")
+                                                           allItems.put("nextContinuation",nextc)
+                                                       }
+                                                       val ite=JSONObject()
+                                                       val rl=conts.getJSONObject(k).getJSONObject("richItemRenderer").getJSONObject("content")
+                                                       if (rl.has("shortsLockupViewModel")){
+                                                           val tit=rl.getJSONObject("shortsLockupViewModel").getJSONObject("overlayMetadata").getJSONObject("primaryText").getString("content")
+                                                           val vid=rl.getJSONObject("shortsLockupViewModel").getJSONObject("onTap").getJSONObject("innertubeCommand").getJSONObject("reelWatchEndpoint").getString("videoId")
+                                                           ite.put("title",tit)
+                                                           ite.put("videoId",vid)
+                                                           ite.put("duration","shorts")
+                                                           videos.put(ite)
+
+
+                                                       }
+                                                       if (rl.has("videoRenderer")){
+                                                           ite.put("videoId",rl.getJSONObject("videoRenderer").getString("videoId"))
+                                                           ite.put("title",txt2filename(rl.getJSONObject("videoRenderer").getJSONObject("title").getJSONArray("runs").getJSONObject(0).getString("text")))
+                                                           if (rl.getJSONObject("videoRenderer").has("lengthText")){
+                                                               ite.put("duration",rl.getJSONObject("videoRenderer").getJSONObject("lengthText").get("simpleText").toString())
+                                                           }else{
+                                                               ite.put("duration","Unknown")
+                                                           }
+                                                           /*ite.put("thumbnail",rl.getJSONObject("videoRenderer").getJSONObject("thumbnail").getJSONArray("thumbnails").getJSONObject(0).getString("url"))*/
+                                                           videos.put(ite)
+
+                                                       }
+
+
+                                                   }
+                                                   if (conts.getJSONObject(k).has("continuationItemRenderer")){
+                                                       val nxtc=conts.getJSONObject(k).getJSONObject("continuationItemRenderer").getJSONObject("continuationEndpoint").getJSONObject("continuationCommand").getString("token")
+                                                       allItems.put("nextContinuation",nxtc)
+
+                                                   }
+                                               }
+                                               allItems.put("videos",videos)
+                                               return allItems
+
+
+                                           }
+                                       }
                                         if (jk.has("playlistVideoListRenderer")){
-                                            val videos=playlistVideoRendrer(jk.getJSONObject("playlistVideoListRenderer").getJSONArray("contents"))
-                                            if (videos.first.length()!=0){
-                                                allItems.put("videos",videos.first)
-                                                allItems.put("nextContinuation",videos.second)
+                                            val plv=playlistVideoRendrer(jk.getJSONObject("playlistVideoListRenderer").getJSONArray("contents"))
+
+                                            if (plv.first.length()!=0){
+                                                allItems.put("videos",plv.first)
+                                                allItems.put("nextContinuation",plv.second)
                                                 allItems.put("title",title)
                                                 return allItems
                                             }
                                         }
                                     }
-                                    val videos=JSONArray()
+
                                     if (contAndItems.has("richGridRenderer")){
                                         val conts=contAndItems.getJSONObject("richGridRenderer").getJSONArray("contents")
 
