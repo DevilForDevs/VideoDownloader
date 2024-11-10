@@ -35,9 +35,22 @@ fun classi(url:String): String? {
     }
     return null
 }
+fun getAllPlaylistLinks(){
+
+}
 
 fun main() {
-    val url = "https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"
+    val plc="4qmFsgJ4EhhVQzhidXRJU0Z3VC1XbDdFVjBoVUswQlEaKkVnbHdiR0Y1YkdsemRITVlBeUFBTUFFNEFlb0RCME5uVGtSUmFsRSUzRJoCL2Jyb3dzZS1mZWVkVUM4YnV0SVNGd1QtV2w3RVYwaFVLMEJRcGxheWxpc3RzMTA0"
+    println(scrapper.channelandplaylsit("https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"))
+
+   /* val allItem=scrapper.playListIds("https://www.youtube.com/@freecodecamp/playlists")
+    if (allItem != null) {
+        if (allItem.has("nextContinuation")){
+            println(allItem.getString("nextContinuation"))
+        }
+        println(allItem.getJSONArray("playListIds"))
+    }*/
+        /*val url = "https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"
     val allItems=scrapper.channelandplaylsit(url)
     val ijl=classi(url)
     if (allItems != null) {
@@ -58,7 +71,9 @@ fun main() {
             file.writeText(videoUrls.joinToString("\n"))
         }
 
-    }
+    }*/
+
+
 }
 
 
