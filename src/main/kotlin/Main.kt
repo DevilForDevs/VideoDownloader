@@ -1,80 +1,67 @@
 import java.io.File
 
-val videoUrls = mutableListOf<String>()
-val scrapper = Interact()
-fun repeater(conti:String,file: File) {
-    val allItems=scrapper.playlist(conti)
-    val videos= allItems?.getJSONArray("videos")
-    if (videos != null) {
-        for (l in 0..<videos.length()) {
-            val videoId=videos.getJSONObject(l).getString("videoId")
-            val urlT="https://www.youtube.com/watch?v=$videoId"
-            videoUrls.add(urlT)
-            println(urlT)
-        }
-    }
-    if (allItems != null) {
-        if (allItems.has("nextContinuation")){
-            println(allItems.getString("nextContinuation"))
-            repeater(allItems.getString("nextContinuation"),file)
+val playlistLinks = mutableListOf<String>()
 
+fun playlist_repeater(continuation:String,file: File){
+    val scrapper=Interact()
+    val fromConti=scrapper.playlist(continuation)
+    val playListIds = fromConti?.getJSONArray("playListIds")
+    if (playListIds != null) {
+        for (l in 0 until playListIds.length()) {
+            val playlistLink = "https://www.youtube.com" + playListIds[l]
+            playlistLinks.add(playlistLink)
+        }
+
+    }
+    if (fromConti != null) {
+        if (fromConti.has("nextContinuation")){
+            println(fromConti.getString("nextContinuation"))
         }else{
-            file.writeText(videoUrls.joinToString("\n"))
+            val uniquePlaylistLinks = playlistLinks.distinct().toMutableList()
+            file.writeText(uniquePlaylistLinks.joinToString("\n"))
+            println("scrapped alll links")
+        }
+    }else{
+        println("from conti is null")
+    }
+
+
+
+}
+fun playlistLinks(channelUrl:String){
+    val scrapper=Interact()
+    val baseUrl = when {
+        channelUrl.contains("/channel/") -> channelUrl.substringBefore("/videos")
+        channelUrl.contains("/@") -> channelUrl
+        else -> throw IllegalArgumentException("Invalid YouTube channel URL format")
+    }
+    val idOrUsername = when {
+        channelUrl.contains("/channel/") -> baseUrl.substringAfter("/channel/")
+        channelUrl.contains("/@") -> baseUrl.substringAfter("/@")
+        else -> "Unknown"
+    }
+    val playlistsPage = "$baseUrl/playlists"
+    val initial_page = scrapper.playListIds(playlistsPage)
+    if (initial_page != null) {
+        val file=File("$idOrUsername playlist.txt")
+        println(file.absolutePath)
+        val playListIds = initial_page.getJSONArray("playListIds")
+        for (l in 0 until playListIds.length()) {
+            val playlistLink = "https://www.youtube.com" + playListIds[l]
+            playlistLinks.add(playlistLink)
+            println(playlistLink)
+        }
+        if (initial_page.has("nextContinuation")){
+            println(initial_page.getString("nextContinuation"))
+           playlist_repeater(initial_page.getString("nextContinuation"),file)
+        }else{
+            val uniquePlaylistLinks = playlistLinks.distinct().toMutableList()
+            file.writeText(uniquePlaylistLinks.joinToString("\n"))
         }
     }
 }
-fun classi(url:String): String? {
-    if (url.contains("shorts")) {
-        return " shorts"
-    }
-    if (url.contains("playlist")) {
-        return " playlist"
-    }
-    if (url.contains("videos")) {
-        return " vidoes"
-    }
-    return null
-}
-fun getAllPlaylistLinks(){
-
-
-}
-
 fun main() {
-    getAllLinksOfChannel("https://www.youtube.com/@freecodecamp")
-    val plc="4qmFsgJ4EhhVQzhidXRJU0Z3VC1XbDdFVjBoVUswQlEaKkVnbHdiR0Y1YkdsemRITVlBeUFBTUFFNEFlb0RCME5uVGtSUmFsRSUzRJoCL2Jyb3dzZS1mZWVkVUM4YnV0SVNGd1QtV2w3RVYwaFVLMEJRcGxheWxpc3RzMTA0"
-    /*println(scrapper.channelandplaylsit("https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"))*/
-   /* val allItem=scrapper.playlist(plc)*/
-   /* val allItem=scrapper.playListIds("https://www.youtube.com/@freecodecamp/playlists")
-    if (allItem != null) {
-        if (allItem.has("nextContinuation")){
-            println(allItem.getString("nextContinuation"))
-        }
-        println(allItem.getJSONArray("playListIds"))
-    }*/
-        /*val url = "https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"
-    val allItems=scrapper.channelandplaylsit(url)
-    val ijl=classi(url)
-    if (allItems != null) {
-        val file = File(scrapper.txt2filename(allItems.getString("title"))+"$ijl.txt")
-        if (allItems.has("nextContinuation")){
-            println(allItems.getString("nextContinuation"))
-        }
-        val videos=allItems.getJSONArray("videos")
-        for (l in 0..<videos.length()) {
-            val videoId=videos.getJSONObject(l).getString("videoId")
-            val urlT="https://www.youtube.com/watch?v=$videoId"
-            videoUrls.add(urlT)
-            println(urlT)
-        }
-        if (allItems.has("nextContinuation")){
-            repeater(allItems.getString("nextContinuation"),file)
-        }else{
-            file.writeText(videoUrls.joinToString("\n"))
-        }
-
-    }*/
-
+playlistLinks("https://www.youtube.com/@TheMysticaLand")
 
 }
 

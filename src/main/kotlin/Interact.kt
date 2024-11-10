@@ -1291,7 +1291,7 @@ class Interact {
             }
         }
 
-        return null
+        return allItems
 
     }
     fun regexPraser(url:String){
@@ -1661,6 +1661,7 @@ class Interact {
 
 
     }
+
 
 }
 
