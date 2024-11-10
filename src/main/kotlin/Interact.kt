@@ -1249,24 +1249,6 @@ class Interact {
             val response = client.newCall(request).execute()
             response.body.use { responseBody ->
                 val jsonResponse = JSONObject(responseBody?.string())
-                if (jsonResponse.toString().contains("gridPlaylistRenderer")){
-                    val regex = Regex("/playlist\\?list=[\\w-]+")
-                    val matches = regex.findAll(jsonResponse.toString())
-                    val idsp=JSONArray()
-                    for (match in matches) {
-                        idsp.put(match.value)
-                    }
-                    val regexForConti = Regex("\"token\":\"([\\w-]+)\"")
-                    val match = regexForConti.find(jsonResponse.toString())
-                    allItems.put("playListIds",idsp)
-                    return if (match != null) {
-                        allItems.put("nextContinuation",match.groupValues[1])
-                        allItems
-
-                    }else{
-                        allItems
-                    }
-                }
                 if (jsonResponse.has("onResponseReceivedActions")) {
                     val sections = jsonResponse.getJSONArray("onResponseReceivedActions").getJSONObject(0)
                         .getJSONObject("appendContinuationItemsAction").getJSONArray("continuationItems")
@@ -1630,6 +1612,58 @@ class Interact {
             speed > 1e3 -> String.format("%.2f KB", speed / 1e3)
             else -> String.format("%.2f B", speed)
         }
+    }
+    fun palylistPage(continuation: String?): JSONObject? {
+        val allItems = JSONObject()
+        val indedxes = mutableListOf(0, 4, 1, 7, 8)
+        for (index in indedxes) {
+            val variant = variants[index]
+            val client = OkHttpClient()
+            val baseApiUrl = "https://www.youtube.com/youtubei/v1/browse"
+            val requestBody = variant.data
+            if (continuation != null) {
+                requestBody.put("continuation", continuation)
+            }
+            val urlWithQuery = StringBuilder(baseApiUrl)
+            if (variant.query.isNotEmpty()) {
+                urlWithQuery.append("?")
+                variant.query.forEach { (key, value) ->
+                    urlWithQuery.append("$key=$value&")
+                }
+                urlWithQuery.deleteCharAt(urlWithQuery.length - 1)
+            }
+            val request = Request.Builder()
+                .url(urlWithQuery.toString())
+                .apply {
+                    variant.headers.forEach { (key, value) ->
+                        addHeader(key, value)
+                    }
+                }
+                .post(requestBody.toString().toRequestBody())
+                .build()
+            val response = client.newCall(request).execute()
+            response.body.use { responseBody ->
+                val jsonResponse = JSONObject(responseBody?.string())
+                val regex = Regex("/playlist\\?list=[\\w-]+")
+                val matches = regex.findAll(jsonResponse.toString())
+                val idsp = JSONArray()
+                for (match in matches) {
+                    idsp.put(match.value)
+                    println()
+                }
+                val regexForConti = Regex("\"token\":\"([\\w-]+)\"")
+                val match = regexForConti.find(jsonResponse.toString())
+                allItems.put("playListIds", idsp)
+                if (match != null) {
+                    allItems.put("nextContinuation", match.groupValues[1])
+                    return allItems
+                } else {
+                    return allItems
+                }
+            }
+        }
+        return null
+
     }
 
     fun playListIds(url: String) :JSONObject?{
