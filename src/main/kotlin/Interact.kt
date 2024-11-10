@@ -1249,22 +1249,23 @@ class Interact {
             val response = client.newCall(request).execute()
             response.body.use { responseBody ->
                 val jsonResponse = JSONObject(responseBody?.string())
-                val regex = Regex("/playlist\\?list=[\\w-]+")
+                if (jsonResponse.toString().contains("gridPlaylistRenderer")){
+                    val regex = Regex("/playlist\\?list=[\\w-]+")
+                    val matches = regex.findAll(jsonResponse.toString())
+                    val idsp=JSONArray()
+                    for (match in matches) {
+                        idsp.put(match.value)
+                    }
+                    val regexForConti = Regex("\"token\":\"([\\w-]+)\"")
+                    val match = regexForConti.find(jsonResponse.toString())
+                    allItems.put("playListIds",idsp)
+                    return if (match != null) {
+                        allItems.put("nextContinuation",match.groupValues[1])
+                        allItems
 
-                // Find matches
-                val matches = regex.findAll(jsonResponse.toString())
-                val idsp=JSONArray()
-                // Print matches
-                for (match in matches) {
-                    idsp.put(match.value)
-                }
-                val regexForConti = Regex("\"token\":\"([\\w-]+)\"")
-                val match = regexForConti.find(jsonResponse.toString())
-                allItems.put("playListIds",idsp)
-                if (match != null) {
-                    allItems.put("nextContinuation",match.groupValues[1])
-                    return allItems
-
+                    }else{
+                        allItems
+                    }
                 }
                 if (jsonResponse.has("onResponseReceivedActions")) {
                     val sections = jsonResponse.getJSONArray("onResponseReceivedActions").getJSONObject(0)
@@ -1283,6 +1284,7 @@ class Interact {
                             .getString("continuation")
                 }
 
+
             }
             if (videosCollected.length() != 0) {
                 allItems.put("videos", videosCollected)
@@ -1291,7 +1293,7 @@ class Interact {
             }
         }
 
-        return allItems
+        return null
 
     }
     fun regexPraser(url:String){
