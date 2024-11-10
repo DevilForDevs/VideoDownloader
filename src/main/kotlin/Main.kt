@@ -37,12 +37,14 @@ fun classi(url:String): String? {
 }
 fun getAllPlaylistLinks(){
 
+
 }
 
 fun main() {
+    getAllLinksOfChannel("https://www.youtube.com/@freecodecamp")
     val plc="4qmFsgJ4EhhVQzhidXRJU0Z3VC1XbDdFVjBoVUswQlEaKkVnbHdiR0Y1YkdsemRITVlBeUFBTUFFNEFlb0RCME5uVGtSUmFsRSUzRJoCL2Jyb3dzZS1mZWVkVUM4YnV0SVNGd1QtV2w3RVYwaFVLMEJRcGxheWxpc3RzMTA0"
-    println(scrapper.channelandplaylsit("https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"))
-
+    /*println(scrapper.channelandplaylsit("https://youtube.com/playlist?list=PL-aJ7oEAuZ3f1QS4qQY5dOlroi52EnkVg&si=OkJFMWusFuy-jtsG"))*/
+   /* val allItem=scrapper.playlist(plc)*/
    /* val allItem=scrapper.playListIds("https://www.youtube.com/@freecodecamp/playlists")
     if (allItem != null) {
         if (allItem.has("nextContinuation")){

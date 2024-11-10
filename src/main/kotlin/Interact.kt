@@ -996,7 +996,7 @@ class Interact {
                         }
                     }
                     if (jsonResponse.getJSONObject("contents").has("twoColumnSearchResultsRenderer")) {
-                        println("twocolumbsea")
+
                         val sections =
                             jsonResponse.getJSONObject("contents").getJSONObject("twoColumnSearchResultsRenderer")
                                 .getJSONObject("primaryContents").getJSONObject("sectionListRenderer")
@@ -1103,7 +1103,7 @@ class Interact {
         var continuation: String? = null
         for (su in 0..<source.length()) {
             val item = source.getJSONObject(su)
-            println(item)
+
             if (item.has("playlistVideoRenderer")) {
                 val ite = JSONObject()
                 if (item.getJSONObject("playlistVideoRenderer").getJSONObject("lengthText").has("simpleText")) {
@@ -1564,7 +1564,7 @@ class Interact {
                 if (scriptContent.startsWith("var ytInitialData")) {
                     val jsonString = scriptContent.substringAfter("{").substringBeforeLast("}")
                     val jsonObject = JSONObject("{$jsonString}")
-                    println(jsonObject.keySet())
+
                     val videos = jsonObject.getJSONObject("contents").getJSONObject("twoColumnBrowseResultsRenderer")
                         .getJSONArray("tabs").getJSONObject(1).getJSONObject("tabRenderer").getJSONObject("content")
                         .getJSONObject("richGridRenderer").getJSONArray("contents")
