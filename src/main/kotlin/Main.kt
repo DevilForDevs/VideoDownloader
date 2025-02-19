@@ -22,9 +22,12 @@ class DownloaderApp{
             put("context", JSONObject(mapOf(
                 "client" to mapOf(
                     "clientName" to "IOS",
-                    "clientVersion" to "17.33.2",
-                    "deviceModel" to "iPhone14,3",
-                    "userAgent" to "com.google.ios.youtube/17.33.2 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)",
+                    "clientVersion" to "19.45.4",
+                    "deviceMake" to "Apple",
+                    "deviceModel" to "iPhone16,2",
+                    "userAgent" to "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",
+                    "osName" to "iPhone",
+                    "osVersion" to "18.1.0.22B83",
                     "hl" to "en",
                     "timeZone" to "UTC",
                     "utcOffsetMinutes" to 0
@@ -33,10 +36,11 @@ class DownloaderApp{
         },
         headers = mapOf(
             "X-YouTube-Client-Name" to "5",
-            "X-YouTube-Client-Version" to "17.33.2",
-            "userAgent" to "com.google.ios.youtube/17.33.2 (iPhone14,3; U; CPU iOS 15_6 like Mac OS X)",
+            "X-YouTube-Client-Version" to "19.45.4",
+            "userAgent" to "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",
             "content-type" to "application/json",
             "Origin" to "https://www.youtube.com",
+            "X-Goog-Visitor-Id" to "CgtNY2N4RFlyYTFrNCjE-q68BjIKCgJJThIEGgAgaA%3D%3D"
         ),
         query =mapOf("key" to "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8")
     )
@@ -57,7 +61,7 @@ class DownloaderApp{
         val keY=requestVariant.query["key"].toString()
         val vid=extractVideoId(youtubeUrl)
         if (vid!=null){
-            val url = "https://www.youtube.com/youtubei/v1/player?${encodeParams(mapOf("videoId" to vid, "key" to keY, "contentCheckOk" to true, "racyCheckOk" to true))}"
+            val url = "https://www.youtube.com/youtubei/v1/player?${encodeParams(mapOf("videoId" to vid, "contentCheckOk" to true, "racyCheckOk" to true))}"
             val requestBody =requestVariant.data.toString()
             val request = Request.Builder()
                 .url(url)
@@ -83,7 +87,8 @@ class DownloaderApp{
                         val audioFile="$downloadsFolder/audio.mp3"
                         val finalFile="$downloadsFolder/$title.mp4"
                         if (std.has("adaptiveFormats")){
-                            println("itags are 140,135,136,160,133 etc ")
+                            println("$title")
+                            println("itags are 140,135,136,160,133 etc")
                             val item=selectFormat(adaptiveFormats)
                             if (item==null){
                                 println("Unable to select resolution")
@@ -157,6 +162,7 @@ class DownloaderApp{
                 println(resolution)
             }
         }
+
         println("Enter Itag>>>")
         val input= readln()
         for (index in 0 ..adaptiveFormats.length()-1){
@@ -271,9 +277,18 @@ class DownloaderApp{
 
 
 
+
+
 fun main() {
     val dpa=DownloaderApp()
     println("Enter Url>>>")
     val input= readln()
     dpa.start(input)
+    /*addItem()*/
+   /* updateOrderStatus(0,"Item Delivered")*/
+    /*getOrders(10)*/
+    /*updateItem()*/
+    /*getItem(4)*/
+    /*removeItem(5)*/
+
 }
