@@ -191,13 +191,14 @@ class DownloaderApp{
         }
         return true
     }
+    //this method is failing due to ssl error on android same method works finely but on my machine failing
     fun downloadas9mb(url: String, fos: OutputStream) {
 
         val client = OkHttpClient()
         val enbyte= minOf(downloadedBytes+9437184,totalBytes)
         val request = Request.Builder()
             .url(url)
-            .addHeader("Range", "bytes=$downloadedBytes-$enbyte")
+            .addHeader("Range", "bytes=0-")
             .build()
         val response=client.newCall(request).execute()
         response.body?.byteStream().use { inputStream->
@@ -211,12 +212,12 @@ class DownloaderApp{
                 }
             }
         }
-        if (downloadedBytes==totalBytes){
+       /* if (downloadedBytes==totalBytes){
             println("\nDownload Finished")
             fos.close()
         }else{
             downloadas9mb(url,fos)
-        }
+        }*/
     }
     fun extractVideoId(ytUrl: String): String? {
         val regex = """^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/|live\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*""".toRegex()
