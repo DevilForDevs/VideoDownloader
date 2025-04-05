@@ -310,7 +310,7 @@ fun getVisitorId(): String {
             "context" to mapOf(
                 "request" to mapOf(
                     "internalExperimentFlags" to emptyList<Any>(),
-                    "useSsl" to true
+
                 ),
                 "client" to mapOf(
                     "androidSdkVersion" to 35,
