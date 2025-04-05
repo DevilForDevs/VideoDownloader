@@ -13,7 +13,7 @@ import java.io.OutputStream
 import java.net.URLEncoder
 import java.nio.file.FileSystems
 
-
+/*for issue contact me ranjanpanpura@gmail.com,https://www.instagram.com/devilfordevs/?hl=en,*/
 data class RequestVariant(
     val data: JSONObject,
     val query: Map<String, String>,
@@ -38,8 +38,11 @@ class DownloaderApp{
     fun start(youtubeUrl: String){
         val vid=extractVideoId(youtubeUrl)
         if (vid!=null){
+            /*Youtbe expects vistor id for every streamingData retrival*/
             val visitorData=getVisitorId()
+            /*cpn or nonce string returned in formats url so its required*/
             val cpn=generateContentPlaybackNonce()
+            /*the t paramerter i dont what its used but seems important*/
             val tp=generateTParameter()
             val client = OkHttpClient()
             val request=androidPlayerResponse(cpn,visitorData,vid,tp)
@@ -192,10 +195,12 @@ class DownloaderApp{
         return true
     }
     //this method is failing due to ssl error on android same method works finely but on my machine failing
+    /*If you use different language like python on win 10,or c# this function works well*/
     fun downloadas9mb(url: String, fos: OutputStream) {
 
         val client = OkHttpClient()
         val enbyte= minOf(downloadedBytes+9437184,totalBytes)
+        /*to use endbyte put range=$downloadedBytes-$endBytes and uncomment downloadasmb(url,fos),after resonse block*/
         val request = Request.Builder()
             .url(url)
             .addHeader("Range", "bytes=0-")
