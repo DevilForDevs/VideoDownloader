@@ -1,3 +1,6 @@
+import RandomStringGenerator.generateContentPlaybackNonce
+import RandomStringGenerator.generateTParameter
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -6,8 +9,10 @@ import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.io.InputStreamReader
+import java.io.OutputStream
 import java.net.URLEncoder
 import java.nio.file.FileSystems
+
 
 data class RequestVariant(
     val data: JSONObject,
@@ -17,33 +22,6 @@ data class RequestVariant(
 class DownloaderApp{
     var downloadedBytes=0L
     var totalBytes=0L
-    val requestVariant=RequestVariant(
-        data = JSONObject().apply {
-            put("context", JSONObject(mapOf(
-                "client" to mapOf(
-                    "clientName" to "IOS",
-                    "clientVersion" to "19.45.4",
-                    "deviceMake" to "Apple",
-                    "deviceModel" to "iPhone16,2",
-                    "userAgent" to "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",
-                    "osName" to "iPhone",
-                    "osVersion" to "18.1.0.22B83",
-                    "hl" to "en",
-                    "timeZone" to "UTC",
-                    "utcOffsetMinutes" to 0
-                )
-            )))
-        },
-        headers = mapOf(
-            "X-YouTube-Client-Name" to "5",
-            "X-YouTube-Client-Version" to "19.45.4",
-            "userAgent" to "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",
-            "content-type" to "application/json",
-            "Origin" to "https://www.youtube.com",
-            "X-Goog-Visitor-Id" to "CgtNY2N4RFlyYTFrNCjE-q68BjIKCgJJThIEGgAgaA%3D%3D"
-        ),
-        query =mapOf("key" to "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8")
-    )
     fun convertBytes(sizeInBytes: Long): String {
         val kilobyte = 1024L
         val megabyte = kilobyte * 1024
@@ -58,25 +36,18 @@ class DownloaderApp{
     }
 
     fun start(youtubeUrl: String){
-        val keY=requestVariant.query["key"].toString()
         val vid=extractVideoId(youtubeUrl)
         if (vid!=null){
-            val url = "https://www.youtube.com/youtubei/v1/player?${encodeParams(mapOf("videoId" to vid, "contentCheckOk" to true, "racyCheckOk" to true))}"
-            val requestBody =requestVariant.data.toString()
-            val request = Request.Builder()
-                .url(url)
-                .apply {
-                    requestVariant.headers.forEach { (key, value) ->
-                        addHeader(key, value)
-                    }
-                }
-                .post(requestBody.toRequestBody())
-                .build()
+            val visitorData=getVisitorId()
+            val cpn=generateContentPlaybackNonce()
+            val tp=generateTParameter()
             val client = OkHttpClient()
+            val request=androidPlayerResponse(cpn,visitorData,vid,tp)
             val response = client.newCall(request).execute()
             response.body.use { responseBody ->
                 if (responseBody != null) {
-                    val json=JSONObject(responseBody.string())
+                    val playerResponse=JSONObject(responseBody.string())
+                    val json=playerResponse.getJSONObject("playerResponse")
                     if (json.has("streamingData")){
                         val std=json.getJSONObject("streamingData")
                         val adaptiveFormats=json.getJSONObject("streamingData").getJSONArray("adaptiveFormats")
@@ -220,7 +191,8 @@ class DownloaderApp{
         }
         return true
     }
-    fun downloadas9mb(url:String,fos:FileOutputStream){
+    fun downloadas9mb(url: String, fos: OutputStream) {
+
         val client = OkHttpClient()
         val enbyte= minOf(downloadedBytes+9437184,totalBytes)
         val request = Request.Builder()
@@ -245,7 +217,6 @@ class DownloaderApp{
         }else{
             downloadas9mb(url,fos)
         }
-
     }
     fun extractVideoId(ytUrl: String): String? {
         val regex = """^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/|live\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*""".toRegex()
@@ -274,6 +245,137 @@ class DownloaderApp{
     }
 
 }
+fun androidPlayerResponse(cpn:String,visitorData:String,videoId:String,t:String): Request {
+    val url = "https://youtubei.googleapis.com/youtubei/v1/reel/reel_item_watch?prettyPrint=false&t=$t&id=$videoId&fields=playerResponse"
+
+    // Create the JSON request body
+    val jsonBody = JSONObject().apply {
+        put("cpn", cpn)
+        put("contentCheckOk", true)
+        put("context", JSONObject().apply {
+            put("request", JSONObject().apply {
+                put("internalExperimentFlags", JSONArray())
+
+            })
+            put("client", JSONObject().apply {
+                put("androidSdkVersion", 35)
+                put("utcOffsetMinutes", 0)
+                put("osVersion", "15")
+                put("hl", "en-GB")
+                put("clientName", "ANDROID")
+                put("gl", "GB")
+                put("clientScreen", "WATCH")
+                put("clientVersion", "19.28.35")
+                put("osName", "Android")
+                put("platform", "MOBILE")
+                put("visitorData", visitorData)
+            })
+            put("user", JSONObject().apply {
+                put("lockedSafetyMode", false)
+            })
+        })
+        put("racyCheckOk", true)
+        put("videoId", videoId)
+        put("playerRequest", JSONObject().apply {
+            put("videoId", videoId)
+        })
+        put("disablePlayerResponse", false)
+    }
+
+    // Define the request headers
+    val headers = mapOf(
+        "User-Agent" to "com.google.android.youtube/19.28.35 (Linux; U; Android 15; GB) gzip",
+        "X-Goog-Api-Format-Version" to "2",
+        "Content-Type" to "application/json",
+        "Accept-Language" to "en-GB, en;q=0.9"
+    )
+    val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
+    val requestBuilder = Request.Builder()
+        .url(url)
+        .post(requestBody)
+    headers.forEach { (key, value) ->
+        requestBuilder.addHeader(key, value)
+    }
+    val request = requestBuilder.build()
+    return request
+
+}
+fun getVisitorId(): String {
+    val client = OkHttpClient()
+    val url = "https://youtubei.googleapis.com/youtubei/v1/visitor_id?prettyPrint=false"
+
+    // JSON Body
+    val jsonBody = JSONObject(
+        mapOf(
+            "context" to mapOf(
+                "request" to mapOf(
+                    "internalExperimentFlags" to emptyList<Any>(),
+                    "useSsl" to true
+                ),
+                "client" to mapOf(
+                    "androidSdkVersion" to 35,
+                    "utcOffsetMinutes" to 0,
+                    "osVersion" to "15",
+                    "hl" to "en-GB",
+                    "clientName" to "ANDROID",
+                    "gl" to "GB",
+                    "clientScreen" to "WATCH",
+                    "clientVersion" to "19.28.35",
+                    "osName" to "Android",
+                    "platform" to "MOBILE"
+                ),
+                "user" to mapOf(
+                    "lockedSafetyMode" to false
+                )
+            )
+        )
+    )
+
+    // Headers
+    val headers = mapOf(
+        "User-Agent" to "com.google.android.youtube/19.28.35 (Linux; U; Android 15; GB) gzip",
+        "X-Goog-Api-Format-Version" to "2",
+        "Content-Type" to "application/json",
+        "Accept-Language" to "en-GB, en;q=0.9"
+    )
+
+    // Convert JSON to Request Body
+    val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+    // Build Request
+    val requestBuilder = Request.Builder()
+        .url(url)
+        .post(requestBody)
+
+    // Add Headers
+    headers.forEach { (key, value) ->
+        requestBuilder.addHeader(key, value)
+    }
+
+    // Final Request
+    val request = requestBuilder.build()
+    val respons=client.newCall(request).execute()
+    val responseString=respons.body?.string()
+    val responseJson=JSONObject(responseString)
+    return responseJson.getJSONObject("responseContext").getString("visitorData")
+
+}
+fun getContentLength(url: String):Long{
+
+    val requestBuilder = Request.Builder()
+        .url(url)
+        .method("HEAD", null)
+    val request = requestBuilder.build()
+    val client = OkHttpClient()
+    val respons=client.newCall(request).execute()
+    return respons.headers.get("Content-Length")?.toLong() ?: 0L
+
+
+}
+
+
+
+
 
 
 
@@ -284,11 +386,4 @@ fun main() {
     println("Enter Url>>>")
     val input= readln()
     dpa.start(input)
-    /*addItem()*/
-   /* updateOrderStatus(0,"Item Delivered")*/
-    /*getOrders(10)*/
-    /*updateItem()*/
-    /*getItem(4)*/
-    /*removeItem(5)*/
-
 }
